@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="Products" format="xml">
+      <types:example format="xml" element="Products" location="examples/Products.xml"/>
+    </types:type>
+    <types:type name="Complaint" format="xml">
+      <types:example format="xml" element="Complaint" location="examples/Complaint.xml"/>
+    </types:type>
+    <types:type name="FE" format="json">
+      <types:shape format="weave" example="examples/FE.json"><![CDATA[%dw 2.0
+
+type FE = {|
+  ID: String, 
+  ProductType: String, 
+  ProductName: String, 
+  ProductPrice: String, 
+  ProductBrand: String, 
+  SKUType: Null, 
+  ProductSubPrice: Null, 
+  ProductColor: String, 
+  ProductSize: Null, 
+  ProductRating: String, 
+  CurrentInvCount: String, 
+  Date_Created: String, 
+  Reason: String, 
+  UserComment: String, 
+  AdditionalComments: String
+|} {"example": "{\\\"ID\\\":\\\"7631\\\",\\\"ProductType\\\":\\\"HEH-9133\\\",\\\"ProductName\\\":\\\"On Cloud Nine Pillow\\\",\\\"ProductPrice\\\":\\\"24.99\\\",\\\"ProductBrand\\\":\\\"FabDecor\\\",\\\"SKUType\\\":null,\\\"ProductSubPrice\\\":null,\\\"ProductColor\\\":\\\"White\\\",\\\"ProductSize\\\":null,\\\"ProductRating\\\":\\\"4.2\\\",\\\"CurrentInvCount\\\":\\\"21\\\",\\\"Date_Created\\\":\\\"2018-03-03 17:41:13\\\",\\\"Reason\\\":\\\"Defected\\\",\\\"UserComment\\\":\\\"Defect product received\\\",\\\"AdditionalComments\\\":\\\"Defect product received\\\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+</types:mule>

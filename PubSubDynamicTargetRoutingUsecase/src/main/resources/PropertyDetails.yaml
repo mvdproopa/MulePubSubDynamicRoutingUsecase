@@ -1,0 +1,19 @@
+Vendors: 
+   AllVendorNames: Vendor1,Vendor2,Vendor3,Vendor4
+Vendor1:
+   Transport: HTTPS
+   Path: /api/claim
+   URL: localhost:9112
+   DWLFileName: ProducttoComplaintFEJSON
+Vendor2:
+   Transport: File
+   Path: Documents/Mule/Vendor2
+   DWLFileName: ProducttoComplaintFEXML
+Vendor3:
+   Transport: File
+   Path: Documents/Mule/Vendor3
+   DWLFileName: ProducttoComplaintJSON
+Vendor4:
+   Transport: File
+   Path: Documents/Mule/Vendor4
+   DWLFileName: ProducttoComplaintXML

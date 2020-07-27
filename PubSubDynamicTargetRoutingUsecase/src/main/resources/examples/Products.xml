@@ -1,0 +1,29 @@
+<Products>
+  <Product>
+    <Product_ID>7631</Product_ID>
+    <SKU>HEH-9133</SKU>
+    <Name>On Cloud Nine Pillow</Name>
+    <Price>24.99</Price>
+    <Retail_Price>24.99</Retail_Price>
+    <Brand>FabDecor</Brand>
+    <Child_SKU></Child_SKU>
+    <Child_Price></Child_Price>
+    <Color>White</Color>
+    <Color_Family>White</Color_Family>
+    <Color_Swatches></Color_Swatches>
+    <Size></Size>
+    <Shoe_Size></Shoe_Size>
+    <Pants_Size></Pants_Size>
+    <Occassion></Occassion>
+    <Season></Season>
+    <Badges></Badges>
+    <Rating_Avg>4.2</Rating_Avg>
+    <Rating_Count>8</Rating_Count>
+    <Inventory_Count>21</Inventory_Count>
+    <Date_Created>2018-03-03 17:41:13</Date_Created>
+    <Reason></Reason>
+    <UserComment></UserComment>
+    <AdditionalComments></AdditionalComments>
+    
+  </Product>
+  </Products>
