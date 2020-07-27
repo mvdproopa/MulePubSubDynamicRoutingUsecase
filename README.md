@@ -12,11 +12,13 @@ FLow-1:
 2. Validate the message for VendorName. 
 3. If the validation is successful, publish the paylaod to Topic.
 4. If the validation is not successful, flow raises an error.
+
 FLow-2:
 5. Another flow listens to the Topic.
 6. Based on the vendor name, flow will transform input paylaod to the required output structure dynamically by using dynamic evaluate.
 7. After Successful transformation, flow will call Flow-3 by using paylaod.
 8. Response from the Flow-3 is published to Response Queue.
+
 FLow-3:
 9. Based on the Vendor Transport Type [supports for Http & FTP(used file to showcase the functionality)], It will send payload to target system by dynamically by getting target details from property file.
 10. If the paylaod is successfully delivered to Target, SUCCESS status response is sent back to FLow-2.
