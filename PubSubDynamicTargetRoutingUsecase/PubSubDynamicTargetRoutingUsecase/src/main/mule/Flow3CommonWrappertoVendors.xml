@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<flow name="CommonWrappertoVendorsFlow" doc:id="a25fb1e6-c865-4a55-81e8-95ccde7e0391" >
+		<choice doc:name="Choice" doc:id="7ca30c71-13ad-406f-80be-6d2bffbe4b41" >
+			<when expression="#[p(vars.VendorName ++ '.Transport') == &quot;HTTPS&quot;]">
+				<http:request method="GET" doc:name="Request" doc:id="771f85f3-bd12-405f-93a6-c90f3865fae1" config-ref="HTTP_Request_configuration" path="#[p(vars.VendorName ++ '.Path')]"/>
+			</when>
+			<when expression="#[p(vars.VendorName ++ '.Transport') == &quot;File&quot;]" >
+				<file:write doc:name="Write" doc:id="4defffc5-cb4d-4cc3-a7ef-f365ab0ca1a5" config-ref="File_Config" path="#[p(vars.VendorName ++ '.Path') ++ '/Test' ++ now() ++ '.txt']" mode="CREATE_NEW" createParentDirectories="false">
+					<reconnect />
+				</file:write>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="d7e26f1e-573b-4a5c-8f4e-8fe10972b6b4" type="B2B:INVAIDTRANSPORTTYPE" description="Invalid transport type defined for the vendor!"/>
+			</otherwise>
+		</choice>
+		<set-payload value='#[%dw 2.0 output application/json
+---
+{
+	"Status" : "Success",
+	"Message" : "Acknowledgement received from vendor"
+	
+}]' doc:name="Set Payload" doc:id="03d05682-93ae-4421-ab2d-d29f788f4c1d" />
+		<logger level="INFO" doc:name="Logger" doc:id="f996b1e0-67b9-43a0-b6a2-c470d7a5ea26" message="#[payload]"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="8708d72b-06ee-4e08-a5a8-ef893b353989" type="B2B:INVAIDTRANSPORTTYPE, FILE:ACCESS_DENIED, FILE:FILE_ALREADY_EXISTS, FILE:FILE_LOCK, FILE:ILLEGAL_CONTENT, FILE:ILLEGAL_PATH, FILE:RETRY_EXHAUSTED, HTTP:BAD_GATEWAY, HTTP:BAD_REQUEST, HTTP:CLIENT_SECURITY, HTTP:FORBIDDEN, HTTP:INTERNAL_SERVER_ERROR, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:NOT_FOUND, HTTP:PARSING, HTTP:RETRY_EXHAUSTED, HTTP:SECURITY, HTTP:SERVICE_UNAVAILABLE, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE, EXPRESSION, STREAM_MAXIMUM_SIZE_EXCEEDED">
+				<logger level="ERROR" doc:name="Logger" doc:id="4b0abae4-e550-4d29-95bc-d380827acec3" message="#[error]"/>
+				<set-payload value='#[%dw 2.0 output application/json
+---
+{
+	"Status" : "Failed",
+	"Message" : "Error while sending the request.  " ++ error.description as String default ""
+	
+}]' doc:name="Set Payload" doc:id="603f8b6e-3df6-4027-bec6-d2a1a588ea22" />
+			</on-error-continue>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="52dc3f3a-d9e1-4a80-8674-40b5ca2f9563" type="FILE:CONNECTIVITY, HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+				<logger level="ERROR" doc:name="Log and send mail (placeholder)" doc:id="49210a91-c2a4-4125-b0fe-f17eddb9fc96" message="#[error]"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

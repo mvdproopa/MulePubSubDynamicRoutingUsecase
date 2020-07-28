@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:bti="http://www.mulesoft.org/schema/mule/ee/bti" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:xml-module="http://www.mulesoft.org/schema/mule/xml-module" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/xml-module http://www.mulesoft.org/schema/mule/xml-module/current/mule-xml-module.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/bti http://www.mulesoft.org/schema/mule/ee/bti/current/mule-bti-ee.xsd">
+<file:config name="File_Config" doc:name="File Config" doc:id="284fa86f-f07e-4e7d-acba-490e6d374aa6" >
+		<file:connection />
+	</file:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="7be7da1c-5e1d-4136-b467-0fe951a30434" >
+		<http:request-connection maxConnections="3" connectionIdleTimeout="3000" host="#[p(vars.VendorName ++ '.URL')]" protocol="HTTPS"/>
+	</http:request-config>
+	<bti:transaction-manager doc:name="Bitronix Transaction Manager" doc:id="80051225-c67c-428e-b80e-1e0989f1d62c" />
+	<configuration-properties doc:name="Configuration properties" doc:id="797858b1-5e39-498c-a673-dfae4c8d4779" file="PropertyDetails.yaml" />
+	
+	<jms:config name="ProductJMSConfig" doc:name="JMS Config" doc:id="df531dcd-ddd6-4028-a289-e8ce403693b8" >
+		<jms:active-mq-connection username="${JMS.Username}" password="${JMS.Password}" clientId="TestClientId" >
+			<jms:caching-strategy >
+				<jms:no-caching />
+			</jms:caching-strategy>
+			<jms:factory-configuration brokerUrl="tcp://localhost:61616" enable-xa="true" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<flow name="ConsumeProductFlow" doc:id="2511f64b-067f-4bfb-96bb-2f485124ac14" >
+		<jms:listener doc:name="Listener" doc:id="9ed9fbb8-c718-4c84-bb51-dba5c3a91b01" destination="ExtProduct" transactionType="XA" primaryNodeOnly="false" transactionalAction="ALWAYS_BEGIN" inboundContentType="application/xml" numberOfConsumers="2" config-ref="ProductJMSConfig">
+			<reconnect />
+			<jms:consumer-type >
+				<jms:queue-consumer />
+			</jms:consumer-type>
+			<jms:response outboundContentType="application/xml" />
+		</jms:listener>
+		<choice doc:name="Choice" doc:id="9d72256e-3c42-4fc7-abb8-bd2caa0312b2">
+			<when expression="#[!isEmpty(attributes.headers.&quot;type&quot;) and (p('Vendors.AllVendorNames') contains attributes.headers.&quot;type&quot;)]">
+				<jms:publish doc:name="Publish" doc:id="7c03cfb1-72b8-4cb0-b799-8a70a870dab8" destination="IntProduct" destinationType="TOPIC" transactionalAction="ALWAYS_JOIN" persistentDelivery="true" config-ref="ProductJMSConfig">
+					<reconnect frequency="30000" count="3" />
+					<jms:message>
+						<jms:properties><![CDATA[#[{
+  "Manufacturer" : attributes.headers."type" 
+}]]]></jms:properties>
+					</jms:message>
+				</jms:publish>
+			</when>
+			<otherwise>
+				<raise-error doc:name="Raise error" doc:id="9465300b-947d-4f93-9679-64eea5a797bb" description="Invalid Vendor Name" type="B2B:INVALIDVENDORNAME" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="4c65522d-14d7-46e1-a8fe-1ef33e4c4140" message="#[payload]" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="88dc7950-d847-4ddd-a9be-88139a0c9cef" >
+				<logger level="ERROR" doc:name="Logger" doc:id="368d695e-a4bb-46ea-9c34-f4f25e8124bc" message="#[error]"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	
+</mule>
